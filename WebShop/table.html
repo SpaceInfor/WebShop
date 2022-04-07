@@ -1,0 +1,723 @@
+|******************************************************************************
+|* tdtst9400.tes  0  VRC B61C 10 live
+|* Production Output Status Against Order
+|* Jayant Harde
+|* 2019-08-09
+|******************************************************************************
+|* Main table tisfc001 , Form Type 4
+|******************************************************************************
+
+|****************************** declaration section ***************************
+declaration:
+
+   table	ttisfc001				|	Production Orders
+   table ttcibd001				|	Item General
+   table ttcemm170			|
+   table twhinh312
+   table twhinh310
+   table ttdsls402
+   table tticst134
+   table ttipcs020
+
+
+   extern	   domain   	tcutcs			adld.f
+   extern   	domain   	tcutcs			adld.t
+   extern   	domain   	tccwoc			clco.f
+   extern   	domain   	tccwoc			clco.t
+   extern   	domain   	tcmcs.cmnf		cmnf.f
+   extern   	domain   	tcmcs.cmnf		cmnf.t
+   extern   	domain	   tcemno			plid
+   extern   	domain   	tcmcs.str50		comp.desc , repo.desc
+   extern   	domain   	tccwoc			clco
+   extern   	domain   	tcmcs.cmnf		cmnf
+   extern   	domain	   tcitem			item , mitm
+   extern	   domain	   tiqep1			bal.qty
+   extern	   domain	   tcmcs.str20		req.dt , del.dt , rel.dt
+   extern	   domain	   tcitem			item
+   extern	   domain	   tcmcs.str100m		item.desc
+
+
+   | Excel Declarations
+   extern	string		datetime_stamp(30),filename(50),pathname.local(50),start(1024),bp.details(80)   |excel.varaiable
+   extern	boolean     	app_status
+   extern	long        		monthno,month_dayno,hours,minutes,seconds,yearno,exit_code,date.status,fp,ret,row.count,file.d.status
+   extern 	domain		tfgld.amnt	avg.value
+|  long 	date.f
+   long 	local_days
+   long 	local_time
+   long 	st.date
+   long 	en.date
+   long 	local_days2
+   long 	local_time2
+   extern 	string 	startdate(20)
+   extern 	string 	enddate(20)
+   extern 	domain	tcdsca	dsca.f,dsca.t
+
+#include <bic_desktop>
+#include <bic_text>
+
+|****************************** program section ********************************
+before.program:
+	comp.desc = "SPACEWOOD FURNISHERS PVT LTD NAGPUR"
+	repo.desc = "PRODUCTION OUTPUT STATUS AGAINST ORDER"
+
+|****************************** group section **********************************
+
+group.1:
+init.group:
+   get.screen.defaults()
+
+|****************************** choice section ********************************
+
+choice.cont.process:
+on.choice:
+   execute(print.data)
+
+choice.print.data:
+on.choice:
+	if rprt_open() then
+		read.main.table3()
+      rprt_close()
+	else
+		choice.again()
+	endif
+
+|****************************** field section *********************************
+
+field.adld.f:
+when.field.changes:
+   adld.t = adld.f
+|****************************** function section ******************************
+
+functions:
+
+function read.main.table()
+{
+	long ret1,days1,time1,ret2,days2,time2,ret3,days3,time3
+
+	select	tisfc001.*
+	from		tisfc001
+	where	tisfc001.adld inrange {:adld.f} and {:adld.t}
+	order by	tisfc001._index1
+	selectdo
+
+		ret1 =  utc.to.local(tisfc001.rdld,days1,time1)
+		req.dt = sprintf$("%D(%02d-%02m-%04Y)",days1)
+
+		ret2 = utc.to.local(tisfc001.adld,days2,time2)
+		del.dt = sprintf$("%D(%02d-%02m-%04Y)",days2)
+
+		ret3 = utc.to.local(tisfc001.prdt,days3,time3)
+		rel.dt = sprintf$("%D(%02d-%02m-%04Y)",days3)
+
+		select	tcibd001.*
+		from		tcibd001
+		where	tcibd001.item = :tisfc001.mitm
+		selectdo
+			item = trim$(tcibd001.item)
+			item.desc = trim$(tcibd001.cdf_cdsc)
+		endselect
+
+		bal.qty = tisfc001.qrdr - tisfc001.qdlv
+
+		rprt_send()
+	endselect
+}
+
+function read.main.table1()
+{
+	long ret1,days1,time1,ret2,days2,time2,ret3,days3,time3
+
+	select	tisfc001.*
+	from		tisfc001
+	where	tisfc001.adld inrange {:adld.f} and {:adld.t}
+	and		tisfc001.clco = {:clco}
+	order by	tisfc001._index1
+	selectdo
+
+		ret1 =  utc.to.local(tisfc001.rdld,days1,time1)
+		req.dt = sprintf$("%D(%02d-%02m-%04Y)",days1)
+
+		ret2 = utc.to.local(tisfc001.adld,days2,time2)
+		del.dt = sprintf$("%D(%02d-%02m-%04Y)",days2)
+
+		ret3 = utc.to.local(tisfc001.prdt,days3,time3)
+		rel.dt = sprintf$("%D(%02d-%02m-%04Y)",days3)
+
+		select	tcibd001.*
+		from		tcibd001
+		where	tcibd001.item = :tisfc001.mitm
+		selectdo
+			item = trim$(tcibd001.item)
+			item.desc = trim$(tcibd001.cdf_cdsc)
+		endselect
+
+		bal.qty = tisfc001.qrdr - tisfc001.qdlv
+
+		rprt_send()
+	endselect
+}
+
+function read.main.table2()
+{
+	long ret1,days1,time1,ret2,days2,time2,ret3,days3,time3
+
+	select	tisfc001.*
+	from		tisfc001
+	where	tisfc001.adld inrange {:adld.f} and {:adld.t}
+	and		tisfc001.plid = {:plid}
+	order by	tisfc001._index1
+	selectdo
+
+		ret1 =  utc.to.local(tisfc001.rdld,days1,time1)
+		req.dt = sprintf$("%D(%02d-%02m-%04Y)",days1)
+
+		ret2 = utc.to.local(tisfc001.adld,days2,time2)
+		del.dt = sprintf$("%D(%02d-%02m-%04Y)",days2)
+
+		ret3 = utc.to.local(tisfc001.prdt,days3,time3)
+		rel.dt = sprintf$("%D(%02d-%02m-%04Y)",days3)
+
+		select	tcibd001.*
+		from		tcibd001
+		where	tcibd001.item = :tisfc001.mitm
+		selectdo
+			item = trim$(tcibd001.item)
+			item.desc = trim$(tcibd001.cdf_cdsc)
+		endselect
+
+		bal.qty = tisfc001.qrdr - tisfc001.qdlv
+
+		rprt_send()
+	endselect
+}
+function read.main.table3()
+{
+	long ret1,days1,time1,ret2,days2,time2,ret3,days3,time3
+
+
+}
+
+function  extern print.excel()
+{
+	excel.header.lines()
+	excel.process.file()
+	ret  = file.rm(filename)
+}
+
+function  excel.header.lines()
+{
+   date.status    = utc.to.date(utc.num(),yearno,monthno,month_dayno,hours,minutes,seconds)
+	datetime_stamp = str$(yearno)&str$(monthno)&str$(month_dayno)&str$(hours)&str$(minutes)&str$(seconds)
+	datetime_stamp = str$(yearno)&str$(monthno)&str$(month_dayno)&str$(hours)&str$(minutes)&str$(seconds)
+
+	filename = "Production_Output_Status_Against_Order" & "_" & ""&datetime_stamp & ".xml"
+
+   fp = seq.open(filename,"w")
+	ret=seq.puts("<?xml version=""1.0""?>",fp)
+	ret=seq.puts("<?mso-application progid=""Excel.Sheet""?>",fp)
+	ret=seq.puts("<Workbook xmlns =""urn:schemas-microsoft-com:office:spreadsheet""",fp)
+	ret=seq.puts(" xmlns:o=""urn:schemas-microsoft-com:office:office""",fp)
+	ret=seq.puts(" xmlns:x=""urn:schemas-microsoft-com:office:excel""",fp)
+	ret=seq.puts(" xmlns:ss=""urn:schemas-microsoft-com:office:spreadsheet""",fp)
+	ret=seq.puts(" xmlns:html=""http://www.w3.org/TR/REC-html40"">",fp)
+	ret=seq.puts(" <DocumentProperties xmlns=""urn:schemas-microsoft-com:office:office"">",fp)
+	ret =seq.puts("<Author>"&logname$&"</Author>" ,fp)
+   ret=seq.puts(" </DocumentProperties>",fp)
+	ret=seq.puts(" <OfficeDocumentSettings xmlns=""urn:schemas-microsoft-com:office:office"">",fp)
+	ret=seq.puts("  <AllowPNG/>",fp)
+	ret=seq.puts(" </OfficeDocumentSettings>",fp)
+	ret=seq.puts(" <ExcelWorkbook xmlns=""urn:schemas-microsoft-com:office:excel"">",fp)
+	ret=seq.puts("  <WindowHeight>4635</WindowHeight>",fp)
+	ret=seq.puts("  <WindowWidth>15345</WindowWidth>",fp)
+	ret=seq.puts("  <WindowTopX>0</WindowTopX>",fp)
+	ret=seq.puts("  <WindowTopY>0</WindowTopY>",fp)
+	ret=seq.puts("  <ProtectStructure>False</ProtectStructure>",fp)
+	ret=seq.puts("  <ProtectWindows>False</ProtectWindows>",fp)
+	ret=seq.puts(" </ExcelWorkbook>",fp)
+
+	ret=seq.puts(" <Styles>",fp)
+	ret=seq.puts("  <Style ss:ID=""Default"" ss:Name=""Normal"">",fp)
+	ret=seq.puts("   <Alignment ss:Vertical=""Bottom""/>",fp)
+	ret=seq.puts("   <Borders/>",fp)
+	ret=seq.puts("   <Font ss:FontName=""Calibri"" x:Family=""Swiss"" ss:Size=""11"" ss:Color=""#000000""/>",fp)
+	ret=seq.puts("   <Interior/>",fp)
+	ret=seq.puts("   <NumberFormat/>",fp)
+	ret=seq.puts("   <Protection/>",fp)
+	ret=seq.puts("  </Style>",fp)
+	ret=seq.puts("  <Style ss:ID=""header"">",fp)
+	ret=seq.puts("   <Font ss:FontName=""Calibri"" x:Family=""Swiss"" ss:Size=""11"" ss:Color=""#000000""",fp)
+	ret=seq.puts("    ss:Bold=""0""/>",fp)
+	| ret=seq.puts("   <Interior ss:Color=""#CCCCCC"" ss:Pattern=""Solid""/>",fp)
+	ret=seq.puts("  </Style>",fp)
+	ret=seq.puts("  <Style ss:ID=""headersection"">",fp)
+	ret=seq.puts("   <Font ss:FontName=""Calibri"" x:Family=""Swiss"" ss:Size=""11"" ss:Color=""#FFFFFF""",fp)
+	ret=seq.puts("    ss:Bold=""1""/>",fp)
+	ret=seq.puts("   <Interior ss:Color=""#1e3796"" ss:Pattern=""Solid""/>",fp)
+	ret=seq.puts("   <Alignment ss:Horizontal = ""Center""/>",fp)
+	ret=seq.puts("   <Borders>",fp)
+	ret=seq.puts("   <Border ss:Position=""Bottom"" ss:LineStyle=""Continuous"" ss:Weight=""1""/>",fp)
+	ret=seq.puts("   <Border ss:Position=""Left"" ss:LineStyle=""Continuous"" ss:Weight=""1""/>",fp)
+	ret=seq.puts("   <Border ss:Position=""Right"" ss:LineStyle=""Continuous"" ss:Weight=""1""/>",fp)
+	ret=seq.puts("   <Border ss:Position=""Top"" ss:LineStyle=""Continuous"" ss:Weight=""1""/>",fp)
+	ret=seq.puts("   </Borders>",fp)
+	ret=seq.puts("  </Style>",fp)
+
+	|Styling for Quantity Number format,which extends after decimal,2 places
+	ret=seq.puts("  <Style ss:ID=""s80"">",fp)
+	ret=seq.puts("   <Font ss:FontName=""Calibri"" x:Family=""Swiss"" ss:Size=""11"" ss:Color=""#000000""/>",fp)   | #FF0000
+	ret=seq.puts("  <NumberFormat ss:Format=""0.00""/>",fp)
+	ret=seq.puts("  </Style>",fp)
+	|Styling for Quantity Number format,which extends after decimal,2 places with Background Colour
+	ret=seq.puts("  <Style ss:ID=""s81"">",fp)
+	ret=seq.puts("   <Font ss:FontName=""Calibri"" x:Family=""Swiss"" ss:Size=""11"" ss:Color=""#000000""/>",fp)
+	ret=seq.puts("   <Borders>",fp)
+	ret=seq.puts("   <Border ss:Position=""Bottom"" ss:LineStyle=""Continuous"" ss:Weight=""1""/>",fp)
+	ret=seq.puts("   <Border ss:Position=""Left"" ss:LineStyle=""Continuous"" ss:Weight=""1""/>",fp)
+	ret=seq.puts("   <Border ss:Position=""Right"" ss:LineStyle=""Continuous"" ss:Weight=""1""/>",fp)
+	ret=seq.puts("   <Border ss:Position=""Top"" ss:LineStyle=""Continuous"" ss:Weight=""1""/>",fp)
+	ret=seq.puts("   </Borders>",fp)
+   |ret=seq.puts("   <Interior ss:Color=""#1e3796"" ss:Pattern=""Solid""/>",fp)
+   ret=seq.puts("   <Interior/>",fp)
+	ret=seq.puts("  <NumberFormat ss:Format=""0.00""/>",fp)
+	ret=seq.puts("  </Style>",fp)
+	ret=seq.puts(" </Styles>",fp)
+
+	ret=seq.puts(" <Worksheet ss:Name=""Production_Order"">",fp)
+
+	ret=seq.puts("<Table ss:ExpandedColumnCount=""100"" ss:ExpandedRowCount="""&str$(5000000)&""" x:FullColumns=""1"" x:FullRows=""1"" ss:DefaultRowHeight=""15"" ss:DefaultColumnWidth=""120"">",fp)
+
+	excel.details.lines()
+
+   ret=seq.puts("  </Table>",fp)
+	ret=seq.puts("  <WorksheetOptions xmlns=""urn:schemas-microsoft-com:office:excel"">",fp)
+	ret=seq.puts("   <PageSetup>",fp)
+	ret=seq.puts("    <Header x:Margin=""0.3""/>",fp)
+	ret=seq.puts("    <Footer x:Margin=""0.3""/>",fp)
+	ret=seq.puts("    <PageMargins x:Bottom=""0.75"" x:Left=""0.7"" x:Right=""0.7"" x:Top=""0.75""/>",fp)
+	ret=seq.puts("   </PageSetup>",fp)
+	ret=seq.puts("   <Print>",fp)
+	ret=seq.puts("    <ValidPrinterInfo/>",fp)
+	ret=seq.puts("    <HorizontalResolution>600</HorizontalResolution>",fp)
+	ret=seq.puts("    <VerticalResolution>0</VerticalResolution>",fp)
+	ret=seq.puts("   </Print>",fp)
+	ret=seq.puts("   <Selected/>",fp)
+	ret=seq.puts("   <Panes>",fp)
+	ret=seq.puts("    <Pane>",fp)
+	ret=seq.puts("     <Number>3</Number>",fp)
+  	ret=seq.puts("     <RangeSelection>R1C1:R1C3</RangeSelection>",fp)
+	ret=seq.puts("    </Pane>",fp)
+	ret=seq.puts("   </Panes>",fp)
+	ret=seq.puts("   <ProtectObjects>False</ProtectObjects>",fp)
+	ret=seq.puts("   <ProtectScenarios>False</ProtectScenarios>",fp)
+	ret=seq.puts("  </WorksheetOptions>",fp)
+	ret=seq.puts(" </Worksheet>",fp)
+	ret=seq.puts("</Workbook>",fp)
+        ret = seq.close(fp)
+}
+
+function  excel.details.lines()
+{
+   ret=seq.puts("<Row >",fp)
+	ret=seq.puts("<Cell></Cell>",fp)
+   ret=seq.puts("<Cell></Cell>",fp)
+	ret=seq.puts("<Cell></Cell>",fp)
+   ret=seq.puts("<Cell ss:StyleID=""headersection""><Data  ss:Type=""String""> Production Output Status Against Order </Data></Cell>",fp)
+	ret=seq.puts("</Row>",fp)
+	ret=seq.puts("<Row>",fp)
+	ret=seq.puts("</Row>",fp)
+	ret=seq.puts("<Row>",fp)
+
+	domain 		tcncmp   	hold.comp
+	hold.comp = get.compnr()
+
+   domain   tcamnt   r.value
+
+	select tcemm170.desc
+	from   tcemm170
+	where  tcemm170._index1={:hold.comp}
+	selectdo
+	selectempty
+		tcemm170.desc = " "
+	endselect
+
+	ret=seq.puts("<Cell ss:StyleID=""header""><Data  ss:Type=""String"">Name of the Company :</Data></Cell>",fp)
+	ret=seq.puts("<Cell ss:StyleID=""header""><Data  ss:Type=""String"">"&str$(tcemm170.desc)&"</Data></Cell>",fp)
+	ret=seq.puts("</Row>",fp)
+
+	ret=seq.puts("<Row>",fp)
+
+	ret=seq.puts("</Row>",fp)
+
+	ret=seq.puts("<Row>",fp)
+	ret=seq.puts("<Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Warehouse</Data></Cell>",fp)
+ 	ret=seq.puts("<Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Work Center</Data></Cell>",fp)
+	ret=seq.puts("<Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">FGMT Date</Data></Cell>",fp)
+	ret=seq.puts("<Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">FGMT /Recipt NO</Data></Cell>",fp)
+	ret=seq.puts("<Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Item</Data></Cell>",fp)
+	ret=seq.puts("<Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Item spacification</Data></Cell>",fp)
+	ret=seq.puts("<Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">FGMT Qty</Data></Cell>",fp)
+	ret=seq.puts("<Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Value in Lacs.</Data></Cell>",fp)
+	ret=seq.puts("<Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Production Order</Data></Cell>",fp)
+	ret=seq.puts("<Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">PO Release Date</Data></Cell>",fp)
+	ret=seq.puts("<Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Manufacturer</Data></Cell>",fp)
+	ret=seq.puts("<Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Product Class</Data></Cell>",fp)
+	ret=seq.puts("<Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Product Type</Data></Cell>",fp)
+   ret=seq.puts("<Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Product Line</Data></Cell>",fp)
+ 	ret=seq.puts("</Row>",fp)
+
+	long ret1,days1,time1,ret2,days2,time2,ret3,days3,time3
+
+   select   whinh312.rcno,
+            whinh312.qrec,
+            whinh312.ardt,
+            whinh312.orno
+   from     whinh312
+   where    whinh312.ardt  inrange  {:adld.f} and {:adld.t}
+   and      whinh312.oorg     =     whinh.oorg.production
+   selectdo
+      select	tisfc001.*
+      from		tisfc001
+      where	   (tisfc001.plid = {:plid} or :plid ="")
+      and		(tisfc001.clco = {:clco} or :clco="")
+      and       tisfc001.pdno =  :whinh312.orno
+      order by	tisfc001._index1
+      selectdo
+
+
+         ret1 =  utc.to.local(tisfc001.rdld,days1,time1)
+         req.dt = sprintf$("%D(%02d-%02m-%04Y)",days1)
+
+         ret3 = utc.to.local(tisfc001.prdt,days3,time3)
+         rel.dt = sprintf$("%D(%02d-%02m-%04Y)",days3)
+
+      | select   whinh312.rcno,
+               | whinh312.qrec
+      | from     whinh312
+      | where    whinh312.orno  =  :tisfc001.pdno
+      | selectdo
+         | select   whinh310.crdt
+         | from     whinh310
+         | where    whinh310.rcno  =  :whinh312.rcno
+         | selectdo
+            |ret2 = utc.to.local(whinh310.crdt,days2,time2)
+            ret2 = utc.to.local(whinh312.ardt,days2,time2)
+            del.dt = sprintf$("%D(%02d-%02m-%04Y)",days2)
+         |endselect
+
+         select	tcibd001.*
+         from		tcibd001
+         where	tcibd001.item = :tisfc001.mitm
+         selectdo
+            item = trim$(tcibd001.item)
+            item.desc = trim$(tcibd001.cdf_cdsc)
+         endselect
+
+         r.value  =  whinh312.qrec * get.rate(tisfc001.pdno,tisfc001.mitm)
+
+         ret=seq.puts("   <Row>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(tisfc001.cwar)&"</Data></Cell>",fp)
+         ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String""> "&str$(tisfc001.clco)&"</Data></Cell>",fp)
+         ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String""> "&str$(del.dt)&"</Data></Cell>",fp)
+         ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String""> "&str$(whinh312.rcno)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(tisfc001.mitm)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(tcibd001.cdf_cdsc)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""s80""><Data ss:Type=""Number"">"&str$(whinh312.qrec)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""s80""><Data ss:Type=""Number"">"&str$(r.value)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(tisfc001.pdno)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(rel.dt)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String""> "&str$(tcibd001.cmnf)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String""> "&str$(tcibd001.cpcl)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String""> "&str$(tcibd001.cpln)&"</Data></Cell>",fp)
+			ret=seq.puts("   </Row>",fp)
+
+      selectempty
+      endselect
+	endselect
+
+   ret=seq.puts("   <Row>",fp)
+   ret=seq.puts("   </Row>",fp)
+}
+
+function  excel.details.lines1()
+{
+   ret=seq.puts("   <Row >",fp)
+	ret=seq.puts("    <Cell>  </Cell>",fp)
+        ret=seq.puts("    <Cell>  </Cell>",fp)
+	ret=seq.puts("    <Cell>  </Cell>",fp)
+        ret=seq.puts("    <Cell ss:StyleID=""headersection""><Data  ss:Type=""String""> Production Output Status Against Order </Data></Cell>",fp)
+	ret=seq.puts("   </Row>",fp)
+	ret=seq.puts("   <Row >",fp)
+	ret=seq.puts("   </Row>",fp)
+	ret=seq.puts("   <Row >",fp)
+
+	domain 		tcncmp   	hold.comp
+	hold.comp = get.compnr()
+
+	select tcemm170.desc
+	from   tcemm170
+	where  tcemm170._index1={:hold.comp}
+	selectdo
+	selectempty
+		tcemm170.desc = " "
+	endselect
+
+	ret=seq.puts("   <Cell ss:StyleID=""header""><Data  ss:Type=""String"">Name of the Company :</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""header""><Data  ss:Type=""String"">"&str$(tcemm170.desc)&"</Data></Cell>",fp)
+	ret=seq.puts("   </Row>",fp)
+
+	ret=seq.puts("   <Row>",fp)
+
+	ret=seq.puts("   </Row>",fp)
+
+	ret=seq.puts("   <Row>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Production Order</Data></Cell>",fp)
+ 	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Item</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Item Description</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Ordered Qty</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Delivered Qty</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Balance Qty</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Release Date</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Requested Date</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Delivery Date</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Work Center</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Manufacturer</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Product Class</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Product Line</Data></Cell>",fp)
+ 	ret=seq.puts("   </Row>",fp)
+
+	long ret1,days1,time1,ret2,days2,time2,ret3,days3,time3
+
+	select	tisfc001.*
+	from		tisfc001
+	where	tisfc001.adld inrange {:adld.f} and {:adld.t}
+	and		tisfc001.clco = {:clco}
+	order by	tisfc001._index1
+	selectdo
+
+		ret1 =  utc.to.local(tisfc001.rdld,days1,time1)
+		req.dt = sprintf$("%D(%02d-%02m-%04Y)",days1)
+
+		ret2 = utc.to.local(tisfc001.adld,days2,time2)
+		del.dt = sprintf$("%D(%02d-%02m-%04Y)",days2)
+
+		ret3 = utc.to.local(tisfc001.prdt,days3,time3)
+		rel.dt = sprintf$("%D(%02d-%02m-%04Y)",days3)
+
+		select	tcibd001.*
+		from		tcibd001
+		where	tcibd001.item = :tisfc001.mitm
+		selectdo
+			item = trim$(tcibd001.item)
+			item.desc = trim$(tcibd001.cdf_cdsc)
+		endselect
+
+		bal.qty = tisfc001.qrdr - tisfc001.qdlv
+
+			ret=seq.puts("   <Row>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(tisfc001.pdno)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(tisfc001.mitm)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(tcibd001.cdf_cdsc)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(tisfc001.qrdr)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(tisfc001.qdlv)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(bal.qty)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(rel.dt)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(req.dt)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String""> "&str$(del.dt)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String""> "&str$(tisfc001.clco)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String""> "&str$(tcibd001.cmnf)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String""> "&str$(tcibd001.cpcl)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String""> "&str$(tcibd001.cpln)&"</Data></Cell>",fp)
+			ret=seq.puts("   </Row>",fp)
+
+	endselect
+
+
+			ret=seq.puts("   <Row>",fp)
+			ret=seq.puts("   </Row>",fp)
+}
+
+function  excel.details.lines2()
+{
+        ret=seq.puts("   <Row >",fp)
+	ret=seq.puts("    <Cell>  </Cell>",fp)
+        ret=seq.puts("    <Cell>  </Cell>",fp)
+	ret=seq.puts("    <Cell>  </Cell>",fp)
+        ret=seq.puts("    <Cell ss:StyleID=""headersection""><Data  ss:Type=""String""> Production Output Status Against Order </Data></Cell>",fp)
+	ret=seq.puts("   </Row>",fp)
+	ret=seq.puts("   <Row >",fp)
+	ret=seq.puts("   </Row>",fp)
+	ret=seq.puts("   <Row >",fp)
+
+	domain 		tcncmp   	hold.comp
+	hold.comp = get.compnr()
+
+	select tcemm170.desc
+	from   tcemm170
+	where  tcemm170._index1={:hold.comp}
+	selectdo
+	selectempty
+		tcemm170.desc = " "
+	endselect
+
+	ret=seq.puts("   <Cell ss:StyleID=""header""><Data  ss:Type=""String"">Name of the Company :</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""header""><Data  ss:Type=""String"">"&str$(tcemm170.desc)&"</Data></Cell>",fp)
+	ret=seq.puts("   </Row>",fp)
+
+	ret=seq.puts("   <Row>",fp)
+
+	ret=seq.puts("   </Row>",fp)
+
+	ret=seq.puts("   <Row>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Production Order</Data></Cell>",fp)
+ 	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Item</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Item Description</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Ordered Qty</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Delivered Qty</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Balance Qty</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Release Date</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Requested Date</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Delivery Date</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Work Center</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Manufacturer</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Product Class</Data></Cell>",fp)
+	ret=seq.puts("   <Cell ss:StyleID=""headersection""><Data  ss:Type=""String"">Product Line</Data></Cell>",fp)
+ 	ret=seq.puts("   </Row>",fp)
+
+	long ret1,days1,time1,ret2,days2,time2,ret3,days3,time3
+
+	select	tisfc001.*
+	from		tisfc001
+	where	tisfc001.adld inrange {:adld.f} and {:adld.t}
+	and		tisfc001.plid = {:plid}
+	order by	tisfc001._index1
+	selectdo
+
+		ret1 =  utc.to.local(tisfc001.rdld,days1,time1)
+		req.dt = sprintf$("%D(%02d-%02m-%04Y)",days1)
+
+		ret2 = utc.to.local(tisfc001.adld,days2,time2)
+		del.dt = sprintf$("%D(%02d-%02m-%04Y)",days2)
+
+		ret3 = utc.to.local(tisfc001.prdt,days3,time3)
+		rel.dt = sprintf$("%D(%02d-%02m-%04Y)",days3)
+
+		select	tcibd001.*
+		from		tcibd001
+		where	tcibd001.item = :tisfc001.mitm
+		selectdo
+			item = trim$(tcibd001.item)
+			item.desc = trim$(tcibd001.cdf_cdsc)
+		endselect
+
+		bal.qty = tisfc001.qrdr - tisfc001.qdlv
+
+			ret=seq.puts("   <Row>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(tisfc001.pdno)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(tisfc001.mitm)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(tcibd001.cdf_cdsc)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(tisfc001.qrdr)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(tisfc001.qdlv)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(bal.qty)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(rel.dt)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String"">"&str$(req.dt)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String""> "&str$(del.dt)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String""> "&str$(tisfc001.clco)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String""> "&str$(tcibd001.cmnf)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String""> "&str$(tcibd001.cpcl)&"</Data></Cell>",fp)
+			ret=seq.puts("   <Cell ss:StyleID=""header""><Data ss:Type=""String""> "&str$(tcibd001.cpln)&"</Data></Cell>",fp)
+			ret=seq.puts("   </Row>",fp)
+
+	endselect
+
+
+			ret=seq.puts("   <Row>",fp)
+			ret=seq.puts("   </Row>",fp)
+}
+
+function  excel.process.file()
+{
+	pathname.local = "${HOMEPATH}\Desktop\" & filename
+|	pathname.local = "E:\" & filename
+
+        if not tc.is.html.ui() then
+|		Copying from Server to Desktop or Client.
+		ret = server2client(filename,pathname.local,true,false)
+|		Starting the XML file through Microsoft Excel.
+		start      = "EXCEL.exe" & " " &pathname.local
+		app_status = start.application.local(start,true,exit_code,"")
+	else
+		file.d.status  =  client.download.file(filename)
+	endif
+}
+function domain   tcamnt   get.rate(domain   tcorno   i.pdno,domain  tcitem   i.item)
+{
+   domain   tcamnt po.val,i.val
+   po.val=0
+   i.val=0
+   domain   tcmcs.str10  i.prbk
+
+   select   tdsls402.orno,
+            tdsls402.pono
+   from     tdsls402
+   where    tdsls402.apdo  =  :i.pdno
+   selectdo
+      select   (tdsls401.oamt/tdsls401.qoor):i.val
+      from     tdsls401
+      where    tdsls401.orno  =  :tdsls402.orno
+      and      tdsls401.pono  =  :tdsls402.pono
+      and      tdsls401.sqnb  =  0
+      and      tdsls401.qoor<>0
+      selectdo
+         po.val =  i.val
+      endselect
+   selectempty
+      select   tipcs020.refe
+      from     tipcs020
+      where    tipcs020.cprj  =  :i.item(1;9)
+      selectdo
+         select   (tdsls401.oamt/tdsls401.qoor):i.val
+         from     tdsls401
+         where    tdsls401.orno  =  :tipcs020.refe
+         and      tdsls401.item  =  :i.item
+         and      tdsls401.sqnb  =  0
+         and      tdsls401.qoor<>0
+         selectdo
+            po.val =  i.val
+         endselect
+      endselect
+   endselect
+   if po.val= 0 then
+      select   ticst134.prbk
+      from     ticst134
+      where    ticst134.pdno  =  :i.pdno
+      selectdo
+         i.prbk   =  ticst134.prbk
+      selectempty
+         i.prbk   =  "TRF000001"
+      endselect
+
+      select	tdpcg031.bapr:i.val
+      from		tdpcg031
+      where	   tdpcg031.item	=	:i.item
+      |and		tdpcg031.exdt	=	0
+      and		tdpcg031.prbk	=	:i.prbk
+      selectdo
+         po.val =   i.val
+      selectempty
+         select	tdpcg031.bapr:i.val
+         from		tdpcg031
+         where	   tdpcg031.item	=	:i.item
+         |and		tdpcg031.exdt	=	0
+         and		tdpcg031.prbk	in("TRF000002","SLS000008", "SLS000009", "SLS000012", "SLS000017", "SLS000018", "SLS000019", "SLS000020", "SLS000029", "SLS000046", "SLS000017", "SLS000010", "SLS000034")
+         selectdo
+            po.val =   i.val
+         selectempty
+            i.val=0
+            po.val =0
+         endselect
+      endselect
+   endif
+   return (po.val)
+
+}

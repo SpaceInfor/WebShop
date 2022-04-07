@@ -1,0 +1,544 @@
+<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="AdminMaster.Master.cs" Inherits="WebShop.AdminMaster" %>
+
+<html>
+<head runat="server">
+    <asp:ContentPlaceHolder ID="head" runat="server">
+    </asp:ContentPlaceHolder>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+    <title>..SFPL..</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.min.css">
+    <!-- Ekko Lightbox -->
+    <link rel="stylesheet" href="../plugins/ekko-lightbox/ekko-lightbox.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="../dist/css/adminlte.min.css">
+    <!-- overlayScrollbars -->
+    <link rel="stylesheet" href="../plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
+    <script> 
+        //$(document).ajaxStart(function () { Pace.restart(); });
+    </script>
+    <script language="javascript">
+        var ctrl
+        function openChild(control, form) {
+            ctrl = control
+            frm = form + ".aspx?param1=" + document.getElementById('<%=t_ofbp.ClientID %>').value;
+            var left = (screen.width - 800) / 2;
+            var top = (screen.height - 400) / 4;
+            childWindow = open(frm, 'pagename', 'resizable=no,width=800,height=400,left=' + left + ',top=' + top);
+        }
+        function setValue(myVal) {
+            document.getElementById(ctrl).value = myVal;
+            $(document).ready(function () {
+                document.getElementById(ctrl).onchange();
+
+            });
+        }
+     // Sys.WebForms.PageRequestManager.getInstance().add_endRequest(EndRequestHandler);
+    </script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            var userid = '';
+            var UserName = '';
+            var t_dept = '';
+            const urlParams = new URLSearchParams(window.location.search);
+            //const lastmoddate = urlParams.get('userId');
+            userid = '<%= Session["t_usid"] %>';
+            UserName = '<%= Session["t_nama"] %>';
+            t_dept = '<%= Session["t_dept"] %>';
+            if (userid == 39) {
+                $("#lidept").css('display', 'block');
+                $("#liuserdept").css('display', 'block');
+            }
+            else {
+                $("#lidept").css('display', 'none');
+                $("#liuserdept").css('display', 'none');
+            }
+            if (UserName !== '') {
+                $("#username").text(UserName);
+            }
+            else {
+                 //var url = '@Url.Action("Index", "Home")';
+                window.location.href = "CustLogin.aspx";
+            }
+
+        });
+   </script>
+
+</head>
+<body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed  pace-big-counter">
+    <form runat="server">
+        <div class="wrapper">
+            <!-- Preloader -->
+            <div class="preloader flex-column justify-content-center align-items-center bg-transparent">
+                <img src="Images/SLoading.gif" alt="Spacewood" height="80" width="80">
+            </div>
+            <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+                    </li>
+                    <li class="nav-item d-none d-sm-inline-block">
+                        <a href="index3.html" class="nav-link">
+                            <asp:Label ID="entunit" runat="server" Text=""></asp:Label></a>
+                    </li>
+                    <li class="nav-item d-none d-sm-inline-block">
+                        <a href="index3.html" class="nav-link">Select Primary Customer</a>
+                    </li>
+                </ul>
+                <!-- SEARCH FORM -->
+                <div class="form-inline ml-3">
+                    <div class="input-group input-group-sm">
+                        <asp:TextBox ID="t_ofbp" runat="server" CssClass="form-control form-control-navbar" placeholder="Select Customer" aria-label="Search" OnTextChanged="t_ofbp_TextChanged" AutoPostBack="true" />
+                        <div class="input-group-append">
+                            <%--<button class="btn btn-navbar" type="submit">--%>
+                            <button id="btnofbp" type="button" class="btn btn-navbar" onclick="openChild('t_ofbp','HelpPages/tccom1500m000')">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" data-toggle="dropdown" href="#">
+                            <i class="far fa-comments"></i>
+                            <span class="badge badge-danger navbar-badge">5</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                            <div id="chatprev" runat="server">
+                                <div class="dropdown-divider"></div>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <asp:LinkButton ID="btnLogout" runat="server" OnClick="btnLogout_Click" CssClass="nav-link">
+                <i class="fa fa-power-off"></i>
+                <span class="badge badge-danger navbar-badge"></span>
+                        </asp:LinkButton>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-widget="control-sidebar" data-slide="true" href="CustLogin.aspx"><i class="fa fa-sign-out" aria-hidden="true"></i></a>
+                    </li>
+                </ul>
+            </nav>
+            <!-- /.navbar -->
+            <!-- Main Sidebar Container -->
+            <aside class="main-sidebar sidebar-dark-warning elevation-4">
+                <!-- Brand Logo -->
+                <a href="CSDashboard.aspx" class="brand-link navbar-light">
+                    <img src="Images/logo-header.png" alt="Spacewood Logo" class="brand-image"
+                        style="opacity: .8">
+                    <span class="brand-text font-weight-light"></span>
+                </a>
+                <!-- Sidebar -->
+                <div class="sidebar">
+                    <!-- Sidebar user panel (optional) -->
+                    <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                        <div class="image">
+                            <%-- <img id="userimage" runat="server" src="Images/user-image/face.jpg" class="img-circle elevation-2" alt="User Image">--%>
+                            <img id="userimage" runat="server" src="Images/face.jpg" class="img-circle elevation-2" alt="User Image">
+                        </div>
+                        <div class="info">
+                            <a href="#" class="d-block">
+                                <asp:Label ID="username" runat="server" Text=""></asp:Label></a>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar Menu -->
+                    <nav class="mt-2">
+                        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                            <li class="nav-item menu-open">
+                                <a href="#" class="nav-link active">
+                                    <i class="nav-icon fas fa-tachometer-alt"></i>
+                                    <p>Dashboard <i class="right fas fa-angle-left"></i></p>
+                                </a>
+                                <ul class="nav nav-treeview">
+                                    <li class="nav-item">
+                                        <a href="CSDashboard.aspx?UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>ML Dashboard</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="INNDashboard.aspx?UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>Innopan Dashboard</p>
+                                        </a>
+                                    </li>
+                                    <%--  <li class="nav-item">
+                                        <a href="ProductMaster.aspx?UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>Product Master</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="BrandMaster.aspx?UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>Brand Master</p>
+                                        </a>
+                                    </li>--%>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Sales Order Batches<i class="right fas fa-angle-left"></i></p>
+                                </a>
+                                <ul class="nav nav-treeview">
+                                    <li class="nav-item">
+                                        <a href="CSBatchUpload.aspx?UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>Upload SO Batch</p>
+                                        </a>
+                                    </li>
+                                </ul>
+
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Customer Complaints<i class="right fas fa-angle-left"></i></p>
+                                </a>
+                                <ul class="nav nav-treeview">
+                                    <li class="nav-item">
+                                        <a href="CSComplaintList.aspx?UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>Customer Complaints</p>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="nav-icon fas fa-copy"></i>
+                                    <p>CIF Form<i class="right fas fa-angle-left"></i></p>
+                                </a>
+                                <ul class="nav nav-treeview">
+                                    <li class="nav-item">
+                                        <a href="LOBCIFForm.aspx?UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>Primary Cust. CIF Form</p>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Task Management<i class="right fas fa-angle-left"></i></p>
+                                </a>
+                                <ul class="nav nav-treeview">
+                                    <li class="nav-item" id="lidept">
+                                        <a href="Department_Master.aspx?UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>Departments</p>
+                                        </a>
+                                    </li>
+                                </ul>
+                                <ul class="nav nav-treeview">
+                                    <li class="nav-item" id="liuserdept">
+                                        <a href="UserwiseDepartmentMaster.aspx?UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>Task Users</p>
+                                        </a>
+                                    </li>
+                                </ul>
+                                <ul class="nav nav-treeview">
+                                    <li class="nav-item">
+                                        <a href="TaskDashboard.aspx?UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>Task Dashboard</p>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="nav-icon fas fa-copy"></i>
+                                    <p>CS PDI Form<i class="right fas fa-angle-left"></i></p>
+                                </a>
+                                <ul class="nav nav-treeview">
+                                    <li class="nav-item">
+                                        <a href="CS_PDIEntry.aspx?UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>PDI Form</p>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <li class="nav-header">
+                                <p>Reports</p>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="nav-icon fas fa-circle"></i>
+                                    <p>
+                                        All Order Reports
+                                       <i class="right fas fa-angle-left"></i>
+                                    </p>
+                                </a>
+                                <ul class="nav nav-treeview">
+                                    <li class="nav-item">
+                                        <a href="CSKOrderDashboard_Nos_Report.aspx?type=REG&UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="nav-icon fas fa-table"></i>
+                                            <p>Order Dashboard</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="CSKOrderAgeing.aspx?type=REG&UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="nav-icon fas fa-table"></i>
+                                            <p>Ageing Report</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="ReadyOrders.aspx?type=REG&UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="nav-icon fas fa-table"></i>
+                                            <p>Ready Orders Report</p>
+                                        </a>
+                                    </li>
+
+                                    <li class="nav-item">
+                                        <a href="BalReadyForPartial.aspx?type=REG&UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="nav-icon fas fa-table"></i>
+                                            <p>Bal Ready Of Part Desp</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="CSKPartialReadyReport.aspx?type=REG&UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="nav-icon fas fa-table"></i>
+                                            <p>Partially Ready Report</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="CSKPartialDespatchReport.aspx?type=REG&UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="nav-icon fas fa-table"></i>
+                                            <p>Part Desp Report</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="CSKWIPReport.aspx?type=REG&UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="nav-icon fas fa-table"></i>
+                                            <p>WIP Report</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="CSPrePlanDrill1.aspx?type=REG&UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="nav-icon fas fa-table"></i>
+                                            <p>Planning Report</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="WIPScanReport.aspx?type=REG&UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="nav-icon fas fa-table"></i>
+                                            <p>WIP Scanning Report</p>
+                                        </a>
+                                    </li>
+                                   
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="nav-icon fas fa-circle"></i>
+                                    <p>
+                                        FOC Order Reports
+                                        <i class="right fas fa-angle-left"></i>
+                                    </p>
+                                </a>
+                                <ul class="nav nav-treeview">
+                                    <li class="nav-item">
+                                        <a href="ReadyOrders.aspx?type=FOC&UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="nav-icon fas fa-table"></i>
+                                            <p>Ready Orders Report</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="BalReadyForPartial.aspx?type=FOC&UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="nav-icon fas fa-table"></i>
+                                            <p>Bal Ready Of Part Desp</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="CSKPartialReadyReport.aspx?type=FOC&UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="nav-icon fas fa-table"></i>
+                                            <p>Partially Ready Report</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="CSKPartialDespatchReport.aspx?type=FOC&UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="nav-icon fas fa-table"></i>
+                                            <p>Part Desp Report</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="CSKWIPReport.aspx?type=FOC&UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="nav-icon fas fa-table"></i>
+                                            <p>WIP Report</p>
+                                        </a>
+                                    </li>
+                                    <%--<li class="nav-item">
+                      <a href="CSPrePlanDrill1.aspx?type=FOC&UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                        <i class="nav-icon fas fa-table"></i>
+                        <p>Planning Report</p>
+                      </a>
+                    </li>--%>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="nav-icon fas fa-circle"></i>
+                                    <p>
+                                        Planning Report
+                    <i class="right fas fa-angle-left"></i>
+                                    </p>
+                                </a>
+                                <ul class="nav nav-treeview">
+                                    <li class="nav-item">
+                                        <a href="RMPlanningReport.aspx?type=FOC&UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="nav-icon fas fa-table"></i>
+                                            <p>RM Planning Report</p>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="nav-icon fas fa-circle"></i>
+                                    <p>Booking Report<i class="right fas fa-angle-left"></i></p>
+                                </a>
+                                <ul class="nav nav-treeview">
+                                    <li class="nav-item">
+                                        <a href="BookedbutnotloggedIn.aspx?type=FOC&UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>Booked but not logged</p>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item has-treeview">
+                                <a href="#" class="nav-link">
+                                    <i class="nav-icon fas fa-edit"></i>
+                                    <p>
+                                        Requests
+                <i class="fas fa-angle-left right"></i>
+                                    </p>
+                                </a>
+                                <ul class="nav nav-treeview">
+                                    <li class="nav-item">
+                                        <a href="ChangePassword.aspx?UID=<%=Request.QueryString["UID"]%>" class="nav-link">
+                                            <i class="nav-icon fas fa-file"></i>
+                                            <p>Change Password</p>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+
+                        </ul>
+                    </nav>
+                    <!-- /.sidebar-menu -->
+                </div>
+
+                <!-- /.sidebar -->
+            </aside>
+            <!-- Content Wrapper. Contains page content -->
+             <div class="content-wrapper">
+            <!-- Content Header (Page header) -->
+            <asp:ContentPlaceHolder ID="ct1" runat="server">
+            </asp:ContentPlaceHolder>
+            <!-- /.content -->
+             </div>
+            <!-- /.content-wrapper -->
+            <!-- Control Sidebar -->
+            <aside class="control-sidebar control-sidebar-dark">
+                <!-- Control sidebar content goes here -->
+            </aside>
+            <!-- /.control-sidebar -->
+            <footer class="main-footer">
+                <strong>Copyright &copy;2021 <a href="http://www.spacewood.in">Spacewood Furnishers Pvt.Ltd.</a>.</strong>
+                <div class="float-right d-none d-sm-inline-block">
+                    <%--<b>Version</b> 3.0.2--%>
+                    <image src="Images/logo_Footer.png"></image>
+                </div>
+                <div id="errordiv" runat="server"></div>
+            </footer>
+
+        </div>
+        <%--   <script src="../plugins/jquery/jquery.min.js"></script>--%>
+        <!-- Bootstrap -->
+        <script src="../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <!-- Ekko Lightbox -->
+
+        <!-- overlayScrollbars -->
+        <script src="../plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
+        <!-- AdminLTE App -->
+        <script src="../dist/js/adminlte.min.js"></script>
+        <!-- Filterizr-->
+        <%--<script src="../plugins/filterizr/jquery.filterizr.min.js"></script>--%>
+        <!-- AdminLTE for demo purposes -->
+        <script src="../dist/js/demo.js"></script>
+        <%--   <script src="../../plugins/jquery/jquery.min.js"></script>--%>
+        <!-- Bootstrap 4 -->
+        <script src="../../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <!-- DataTables  & Plugins -->
+        <script src="../../plugins/datatables/jquery.dataTables.min.js"></script>
+        <script src="../../plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+        <script src="../../plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+        <script src="../../plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+        <script src="../../plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+        <script src="../../plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+        <script src="../../plugins/jszip/jszip.min.js"></script>
+        <script src="../../plugins/pdfmake/pdfmake.min.js"></script>
+        <script src="../../plugins/pdfmake/vfs_fonts.js"></script>
+        <script src="../../plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+        <script src="../../plugins/datatables-buttons/js/buttons.print.min.js"></script>
+        <script src="../../plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+        <!-- Page specific script -->
+        <script>
+            $(function () {
+
+            })
+        </script>
+
+
+        <!-- Ekko Lightbox -->
+        <script src="../plugins/ekko-lightbox/ekko-lightbox.min.js"></script>
+        <!-- AdminLTE App -->
+
+        <!-- Filterizr-->
+
+        <!-- AdminLTE for demo purposes -->
+
+        <!-- Page specific script -->
+        <script>
+            $(function () {
+                $(document).on('click', '[data-toggle="lightbox"]', function (event) {
+                    event.preventDefault();
+                    $(this).ekkoLightbox({
+                        alwaysShowClose: true
+                    });
+                });
+
+                //$('.filter-container').filterizr({ gutterPixels: 3 });
+                //$('.btn[data-filter]').on('click', function () {
+                //  $('.btn[data-filter]').removeClass('active');
+                //  $(this).addClass('active');
+                //});
+            })
+        </script>
+    </form>
+    <!-- Main Footer -->
+
+
+
+</body>
+</html>
+
+
+
+

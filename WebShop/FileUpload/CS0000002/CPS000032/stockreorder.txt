@@ -1,0 +1,532 @@
+|******************************************************************************
+|* whinf2415m000  0  VRC B61O a7 live
+|* Print Stock Recorder Report
+|* Installation user                                                                                                       
+|* 2014-02-27
+|******************************************************************************
+|* Main table whwmd215 Item Inventory by Warehouse, Form Type 4
+|******************************************************************************
+                                                                                
+|****************************** declaration section ***************************
+declaration:
+
+  table   twhwmd215 | Item Inventory by Warehouse
+
+	table ttdsls401
+	table	ttdpur401
+	table	ttdsls400
+	table	ttdpur400
+	table	twhinh431
+	table	twhinf312
+	table	ttdpcg031
+	table	ttdpcg000
+	table	ttcibd001
+	table	ttcibd200
+	table	ttcinf010
+	table	ttdisa001
+	
+		extern  domain  tccwar           cwar.f    fixed
+		extern  domain  tccwar           cwar.t    fixed
+		extern  domain  tcitem           item.f    fixed
+		extern  domain  tcitem           item.t    fixed
+		extern	domain	tcyesno		sel.f	
+		extern	domain	tcmcs.str15	r.bold.item
+		extern	domain	tcyesno	is.bold.item
+
+		extern domain tccwar				r.cwar
+		extern domain tcdsca				r.cwar.dsca	
+		extern domain tcitem				r.item
+		extern domain tcdsca				r.item.dsca,r.item.dscb
+		extern domain tcqiv2				r.reop
+		extern domain tcabcc				r.abcc,r.abcc_PTL
+		extern domain tcpric				r.pric
+		extern domain tcqiv1				r.osdd
+		extern domain tcqiv1				r.so.qty,r.so.qty.pgg
+		extern domain tcqiv1				r.po.qty
+		extern domain tcqiv1				r.in.tran
+		extern domain tcqiv1				r.on.hand,r.net.on.hand
+		extern domain tcqiv1				r.requirement,r.msl 
+		extern domain tcqiv1				r.month(12),r.moq.ptl,r.month.pgg(12)
+		extern domain tcmcs.str30				r.month.name(12),pgg.mon.name(12)
+	
+		extern	domain	tccsel			csel.f,csel.t
+		extern	domain	tccuni			r.unit
+		extern	domain	tcqiv1			r.PTL.net.stoc
+		extern	domain	tcbool			is.pgg.rpt
+	
+		long yearno , yearno2
+		long monthno ,monthno2 
+		long month_dayno,month_dayno2  
+		long hours,hours2  
+		long minutes,minutes2  
+		long seconds,seconds2 
+
+	
+	
+
+|****************************** program section ********************************
+before.program:
+	sel.f = tcyesno.no
+
+|****************************** group section **********************************
+
+group.1:
+init.group:
+   get.screen.defaults()
+
+|****************************** choice section ********************************
+
+choice.cont.process:
+on.choice:
+   execute(print.data)
+|
+|choice.print.data:
+|on.choice:
+|   if rprt_open() then
+|       read.main.table()
+|       rprt_close()
+|   else
+|       choice.again()
+|   endif
+|   
+   choice.print.data:
+	on.choice:
+	if rprt_open() then
+		is.pgg.rpt = false
+	
+		on case report$
+		case "rwhinf241501002":
+			is.pgg.rpt = true
+			break
+		endcase
+		read.main.table()
+		rprt_close()
+	else
+		choice.again()
+	endif
+
+
+
+
+|****************************** field section *********************************
+
+field.cwar.f:
+when.field.changes:
+   cwar.t = cwar.f
+
+field.item.f:
+when.field.changes:
+   item.t = item.f
+
+
+|****************************** function section ******************************
+
+functions:
+
+function read.main.table()
+{
+	domain	tcqiv1	r.110.stoc
+	domain	tcqiv1	r.140.stoc
+
+
+	
+	r.item.dsca 	= "" 
+	r.item.dscb	= ""
+	
+	select 	whwmd215.*,
+		  	tcibd001.dsca:r.item.dsca,tcibd001.dscb:r.item.dscb,tcibd001.csel,tcibd001.cpln,tcibd001.cuni	
+	from 	whwmd215,tcibd001
+	where	whwmd215.item = tcibd001.item
+	and		tcibd001.csel inrange	:csel.f and :csel.t
+	and		((tcibd001.csel in ("A16","A41","A60") and :sel.f	 = tcyesno.yes) or (:sel.f	 = tcyesno.no))
+	and   whwmd215._index1 inrange {:cwar.f, :item.f}
+	                     and {:cwar.t, :item.t}
+	order by whwmd215._index1
+	selectdo
+		r.cwar.dsca	= ""	
+		
+		r.reop	 	= 0
+		r.abcc	 	= ""
+		r.pric	 	= 0
+		r.osdd	 	= 0
+		r.so.qty	 	= 0
+		r.so.qty.pgg	=0
+		r.po.qty	 	= 0
+		r.in.tran	 	= 0
+		r.PTL.net.stoc=0
+		r.on.hand	= whwmd215.qhnd
+		|if whwmd215.qhnd - whwmd215.qall >0 then
+		r.net.on.hand = whwmd215.qhnd - whwmd215.qall 
+		|else
+		|	r.net.on.hand =0
+		|endif
+		r.requirement	= 0
+		
+		select	(whwmd215.qhnd - whwmd215.qall):r.110.stoc
+		from		whwmd215
+		where	whwmd215.item =:whwmd215.item
+		and		whwmd215.cwar in("1FG001","1FG002","4FG001")
+		and		(whwmd215.qhnd- whwmd215.qall)>0
+		and		whwmd215._compnr=110
+		selectdo	
+		selectempty
+			r.110.stoc	=	0	
+		endselect
+		
+		select	(whwmd215.qhnd - whwmd215.qall):r.140.stoc
+		from		whwmd215
+		where	whwmd215.item =:whwmd215.item
+		and		whwmd215.cwar in("1FG001","1FG002","4FG001")
+		and		(whwmd215.qhnd- whwmd215.qall)>0
+		and		whwmd215._compnr =140
+		selectdo
+		selectempty
+			r.140.stoc	=	0	
+		endselect
+		
+		r.PTL.net.stoc = r.110.stoc +  r.140.stoc
+		
+		
+		r.cwar	= trim$(whwmd215.cwar)
+		r.item	= whwmd215.item
+		r.month.name(1,1) = ""
+		
+		set.mem(r.month.name, " " )
+		set.mem(r.month, 0)
+		
+		
+|		select tcibd001.dsca:r.item.dsca,tcibd001.dscb:r.item.dscb,tcibd001.csel,tcibd001.cpln,tcibd001.cuni
+|		from tcibd001
+|		where tcibd001._index1 = {:whwmd215.item}
+|		and	tcibd001.csel inrange	:csel.f and :csel.t
+|		selectdo
+			r.unit	  = tcibd001.cuni
+			
+			select	tcmcs022.dsca
+			from	tcmcs022
+			where	tcmcs022.csel = :tcibd001.csel
+			selectdo
+			endselect
+			
+			select	tcmcs061.dsca
+			from	tcmcs061
+			where	tcmcs061.cpln = :tcibd001.cpln
+			selectdo
+			endselect
+		
+
+	
+			select tcmcs003.dsca:r.cwar.dsca
+			from tcmcs003
+			where tcmcs003._index1 = {:whwmd215.cwar}
+			selectdo
+			endselect
+			
+			select whwmd400.abcc:r.abcc
+			from whwmd400
+			where whwmd400._index1 = {:whwmd215.item}
+			selectdo
+			endselect
+			
+			
+			select whwmd400.abcc:r.abcc
+			from whwmd400
+			where whwmd400._index1 = {:whwmd215.item}
+			selectdo
+			endselect
+			
+			
+			select whwmd400.abcc:r.abcc_PTL
+			from whwmd400
+			where whwmd400._index1 = {:whwmd215.item}
+			and	 whwmd400._compnr = 110
+			selectdo
+				if r.abcc_PTL = "" then
+					select whwmd400.abcc:r.abcc_PTL
+					from whwmd400
+					where whwmd400._index1 = {:whwmd215.item}
+					and	 whwmd400._compnr = 140
+					selectdo
+					endselect	
+				endif
+			selectempty
+				select whwmd400.abcc:r.abcc_PTL
+				from whwmd400
+				where whwmd400._index1 = {:whwmd215.item}
+				and	 whwmd400._compnr = 140
+				selectdo
+				endselect	
+			endselect
+			
+			select	tdisa001.cdf_web
+			from		tdisa001
+			where	tdisa001.item = {:whwmd215.item}
+			selectdo
+				get.var(pid, "tdisa001.cdf_web",is.bold.item)
+				if is.bold.item = tcyesno.yes then
+					r.bold.item = "BOLD ITEM"
+				else
+					r.bold.item = ""
+				endif
+			selectempty
+				r.bold.item = ""
+			endselect	
+			
+			
+			select	tcibd200.fioq:r.moq.ptl
+			from		tcibd200
+			where	tcibd200.item = {:whwmd215.item}
+			and	 	tcibd200._compnr = 110
+			selectdo
+				if	r.moq.ptl <=1 then
+					select	tdisa001.qimo:r.moq.ptl
+					from		tdisa001
+					where	tdisa001.item = {:whwmd215.item}
+					and	 	tdisa001._compnr = 110
+					selectdo
+					selectempty
+						r.moq.ptl = 0
+					endselect
+				endif
+			selectempty
+				select	tcibd200.fioq:r.moq.ptl
+				from		tcibd200
+				where	tcibd200.item = {:whwmd215.item}
+				and	 	tcibd200._compnr = 140
+				selectdo
+					if	r.moq.ptl <=1 then
+						select	tdisa001.qimo:r.moq.ptl
+						from		tdisa001
+						where	tdisa001.item = {:whwmd215.item}
+						and	 	tdisa001._compnr = 140
+						selectdo
+						selectempty
+							r.moq.ptl = 0
+						endselect
+					endif
+				selectempty
+					
+				endselect
+			endselect		
+			
+			
+				
+				
+					
+				
+			
+			select	tcinf010.conv
+			from		tcinf010
+			where	tcinf010.item = {:whwmd215.item}
+			selectdo
+				r.moq.ptl = r.moq.ptl * tcinf010.conv
+			selectempty
+			endselect
+			
+			
+		
+			
+			
+			select tcibd200.reop:r.reop
+			from tcibd200
+			where tcibd200._index1 = {:whwmd215.item}
+			selectdo
+			endselect
+	
+	
+	
+			select tdpcg000.pdpb
+			from tdpcg000
+			where tdpcg000.indt= 0
+			selectdo
+				select tdpcg031.*
+				from tdpcg031
+				where tdpcg031._index1 = {tdpcg.pbor.stnd,:tdpcg000.pdpb,:whwmd215.item}
+				order by tdpcg031._index1
+				selectdo
+					r.pric = tdpcg031.bapr
+				endselect
+			selectempty
+				select tdpur401.odat,tdpur401.pric
+				from tdpur401
+				where tdpur401._index8 = {:whwmd215.item}
+				and 	tdpur401.qoor > 0 
+				order by tdpur401.odat desc
+				as set with 1 rows
+				selectdo	
+					r.pric = tdpur401.pric
+				endselect
+			endselect
+		|endselect
+		
+		select sum(whinh431.qshp):r.osdd
+		from whinh431
+		where whinh431._index3 = {:whwmd215.item}
+		and	whinh431.cwar = :whwmd215.cwar
+		and	whinh431.shst <> whinh.shst.confirmed
+		selectdo
+		endselect
+		
+		
+		select tdsls400.orno,tdsls401.item,tdsls401.qoor,tdsls401.qidl,tdsls401.qbbo
+		from tdsls400,tdsls401
+		where tdsls400.hdst <> tdsls.hdst.closed
+		and	tdsls401._index1 = {tdsls400.orno}
+		and	tdsls401._index9 = {:whwmd215.item}
+		and	tdsls401.cwar = :whwmd215.cwar
+		and	tdsls401.clyn = tcyesno.no
+		and	tdsls401.oltp <> tdsls.oltp.total
+		selectdo
+			r.so.qty = r.so.qty + (tdsls401.qoor - (tdsls401.qidl+tdsls401.qbbo))
+		endselect
+		
+		if is.pgg.rpt = true then
+		
+			select tdsls400.orno,tdsls401.item,tdsls401.qoor,tdsls401.qidl,tdsls401.qbbo
+			from tdsls400,tdsls401
+			where tdsls400.hdst <> tdsls.hdst.closed
+			and	tdsls401._index1 = {tdsls400.orno}
+			and	tdsls401._index9 = {:whwmd215.item}
+			and	tdsls401.cwar = :whwmd215.cwar
+			and	tdsls401.clyn = tcyesno.no
+			and	tdsls401.oltp <> tdsls.oltp.total
+			and	tdsls400.ofbp = "PIXG01"
+			selectdo
+				r.so.qty.pgg = r.so.qty.pgg + (tdsls401.qoor - (tdsls401.qidl+tdsls401.qbbo))
+			endselect
+		else
+			r.so.qty.pgg = 0
+		endif
+		
+|		select tdpur400.orno,tdpur401.item,tdpur401.qoor,tdpur401.qidl,tdpur401.qibo
+|		from tdpur400,tdpur401
+|		where tdpur400.hdst <> tdpur.hdst.closed
+|		and	tdpur401._index1 = {tdpur400.orno}
+|		and	tdpur401._index8 = {:whwmd215.item}
+|		and	tdpur401.cwar = :whwmd215.cwar
+|		and	tdpur401.clyn = tcyesno.no
+|		and	tdpur401.oltp <> tdgen.oltp.total
+|		selectdo
+|			|r.po.qty = r.po.qty + (tdpur401.qoor - (tdpur401.qidl+tdpur401.qibo))
+|			r.po.qty = r.po.qty + (tdpur401.qoor - (tdpur401.qidl))
+|		endselect		
+		r.po.qty = whwmd215.qord	
+		
+		| select whinf312.dqua,whinf312.prno,whinf312.ppon
+		| from whinf312
+		| where whinf312.item = :whwmd215.item
+		| and	whinf312.pros = tcyesno.no
+		| selectdo
+			| select tdpur401.orno
+			| from tdpur401
+			| where tdpur401._index1 = {:whinf312.prno,:whinf312.ppon}
+			| and	tdpur401.cwar = :whwmd215.cwar
+			| as set with 1 rows 
+			| selectdo
+				| r.in.tran = r.in.tran + whinf312.dqua
+			| endselect
+		| endselect
+		
+		select	sum(whinh312.qrec):r.in.tran
+		from	whinh312
+		where	whinh312.lsta<>whinh.lstc.confirmed
+		and	whinh312.item = :whwmd215.item
+		and	whinh312.cwar = :whwmd215.cwar
+		selectdo
+		selectempty
+			r.in.tran=0
+		endselect
+		
+		r.po.qty=r.po.qty-r.in.tran
+		
+		if  r.po.qty<0 then
+			r.po.qty=0
+		endif
+		
+		utc.to.date(utc.num(), yearno, monthno, month_dayno, hours, minutes,seconds)
+		utc.to.date(utc.num(), yearno2, monthno2, month_dayno2, hours2, minutes2,seconds2)
+
+		
+		
+		long i,x
+		
+		domain tcdate hold.date.f, hold.date.t,pgg.date.f,pgg.date.t
+		domain tcqiv1 hold.qty
+		
+		hold.date.f = date.to.utc(yearno, monthno, 1, 0, 0, 0)
+		
+		utc.add(hold.date.f,0, 1, 0, 0, 0, 0, hold.date.t)
+
+		
+		for i=1 to 12
+			utc.to.date(hold.date.f, yearno, monthno, month_dayno, hours, minutes,seconds)
+			
+			r.month.name(1,i) = str$(monthno) & "-" & str$(yearno)
+			hold.qty = 0 
+			select sum(cisli245.dqua):hold.qty
+			from cisli245
+			where cisli245.ratd inrange {:hold.date.f} and {:hold.date.t}
+			and	cisli245.item = :whwmd215.item
+			and	cisli245.cwar = :whwmd215.cwar
+			selectdo
+			endselect
+			r.month(i) = hold.qty
+			
+			utc.add(hold.date.f ,0, -1, 0, 0, 0, 0, hold.date.f)
+			utc.add(hold.date.t ,0, -1, 0, 0, 0, 0, hold.date.t)	
+		endfor
+		
+		if is.pgg.rpt = true then
+			pgg.date.f = date.to.utc(yearno2, monthno2, 1, 0, 0, 0)
+			
+			utc.add(pgg.date.f,0, 1, 0, 0, 0, 0, pgg.date.t)
+			
+			for x=1 to 12
+				utc.to.date(pgg.date.f, yearno2, monthno2, month_dayno2, hours2, minutes2,seconds2)
+				pgg.mon.name(1,x) = str$(monthno2) & "-" & str$(yearno2)
+				hold.qty = 0 
+				
+				select sum(cisli245.dqua):hold.qty
+				from cisli245
+				where	cisli245.ratd inrange {:pgg.date.f} and {:pgg.date.t}
+				and		cisli245.item = :whwmd215.item
+				and		cisli245.cwar = :whwmd215.cwar
+				and		cisli245.stbp = "PIXG01"
+				selectdo
+				endselect
+				r.month.pgg(x) = hold.qty
+				utc.add(pgg.date.f ,0, -1, 0, 0, 0, 0, pgg.date.f)
+				utc.add(pgg.date.t ,0, -1, 0, 0, 0, 0, pgg.date.t)	
+			endfor
+		endif
+		
+		
+		
+		|r.msl = (r.month(1)+r.month(2)+r.month(3)+r.month(4)+r.month(5)+r.month(6)+r.month(7)+r.month(8))
+		
+		r.msl = (r.month(1)+r.month(2)+r.month(3)+r.month(4)+r.month(5)+r.month(6)+r.month(7)+r.month(8)+r.month(9)+r.month(10)+r.month(11)+r.month(12))/12
+		
+		if r.abcc = "A" then
+			r.msl = r.msl * 8
+		else
+			if r.abcc = "B" then
+				r.msl = r.msl * 6
+			else
+				r.msl = 0
+			endif
+		endif
+		
+		|r.requirement = (r.osdd+r.so.qty+r.month(1)+r.month(2)+r.month(3)+r.month(4)+r.month(5)+r.month(6))-(r.po.qty+r.in.tran+r.on.hand) 
+		
+		if (tcibd001.cpln="BEXCLA" or tcibd001.cpln="ABEXWG" or tcibd001.cpln="SABEAU") and r.abcc<>"C" then 
+			r.requirement = (r.po.qty+r.in.tran+r.on.hand)-(r.so.qty+(r.month(1)+r.month(2)+r.month(3)+r.month(4)+r.month(5)+r.month(6)+r.month(7)+r.month(8)+r.month(9)+r.month(10))*1)	 |  logic amended by hemant sonawane on 05/11/2015	
+		else
+			if r.abcc = "A" or r.abcc="B" then
+				r.requirement = (r.po.qty+r.in.tran+r.on.hand)-(r.so.qty+(r.month(1)+r.month(2)+r.month(3)+r.month(4)+r.month(5)+r.month(6)+r.month(7)+r.month(8)+r.month(9))*1)	 |  logic amended by hemant sonawane on 05/11/2015
+			else
+				r.requirement = (r.po.qty+r.in.tran+r.on.hand)-(r.so.qty+(r.month(1)+r.month(2)+r.month(3)+r.month(4)+r.month(5)+r.month(6)+r.month(7)+r.month(8))*1)	 |  logic amended by hemant sonawane on 05/11/2015	
+			endif
+		endif
+		rprt_send()
+	endselect
+}
